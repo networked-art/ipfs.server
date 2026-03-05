@@ -1,0 +1,5 @@
+#!/bin/sh
+
+# Stop existing containers to free published ports (4001/swarm)
+# before starting the new container, avoiding port conflicts.
+kamal app stop 2>/dev/null || true

@@ -1,0 +1,9 @@
+{
+  "name": "@1001/ipfs-server",
+  "private": true,
+  "scripts": {
+    "kamal:setup": "set -a && . ./.env.production && set +a && kamal setup",
+    "kamal:deploy": "set -a && . ./.env.production && set +a && kamal deploy",
+    "kamal:sh": "set -a && . ./.env.production && set +a && kamal app exec -i --reuse \"sh\""
+  }
+}

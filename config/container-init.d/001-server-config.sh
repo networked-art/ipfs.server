@@ -1,0 +1,20 @@
+#!/bin/sh
+set -e
+
+# Configure the IPFS gateway to listen on all interfaces
+# so Kamal proxy can reach it for SSL termination
+ipfs config Addresses.Gateway /ip4/0.0.0.0/tcp/8080
+
+# Keep the API bound to localhost only (security)
+ipfs config Addresses.API /ip4/127.0.0.1/tcp/5001
+
+# Only serve content that is already pinned/cached locally
+ipfs config --bool Gateway.NoFetch true
+
+# Enable directory listings and other deserialized responses
+ipfs config --bool Gateway.DeserializedResponses true
+
+# Allow the admin WebUI and standard origins to access the RPC API
+ORIGINS='["https://'"${IPFS_ADMIN_HOST}"'", "http://localhost:3000", "http://127.0.0.1:5001", "https://webui.ipfs.io"]'
+ipfs config --json API.HTTPHeaders.Access-Control-Allow-Origin "$ORIGINS"
+ipfs config --json API.HTTPHeaders.Access-Control-Allow-Methods '["PUT", "POST"]'

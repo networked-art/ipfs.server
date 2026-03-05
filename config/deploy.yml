@@ -1,0 +1,46 @@
+# 1001 IPFS Node - Kamal Deployment Configuration
+service: 1001-ipfs
+
+image: <%= ENV["DOCKER_REGISTRY_USERNAME"] %>/1001-ipfs
+
+servers:
+  web:
+    hosts:
+      - <%= ENV["DEPLOY_HOST"] %>
+    options:
+      publish:
+        - 4001:4001
+        - 4001:4001/udp
+
+proxy:
+  ssl: true
+  hosts:
+    - <%= ENV["IPFS_HOST"] %>
+  app_port: 8080
+  healthcheck:
+    path: /ipfs/QmUNLLsPACCz1vLxQVkXqqLX5R1X345qqfHbsf67hvA3Nn
+    interval: 5
+    timeout: 60
+
+registry:
+  username: <%= ENV["DOCKER_REGISTRY_USERNAME"] %>
+  password:
+    - KAMAL_REGISTRY_PASSWORD
+
+builder:
+  arch: amd64
+  dockerfile: ../Dockerfile
+
+env:
+  clear:
+    IPFS_PROFILE: server
+    ADMIN_USER: admin
+    IPFS_ADMIN_HOST: <%= ENV["IPFS_ADMIN_HOST"] %>
+  secret:
+    - ADMIN_PASSWORD_HASH
+
+volumes:
+  - ipfs_data:/data/ipfs
+
+ssh:
+  user: root

@@ -1,0 +1,16 @@
+#!/bin/sh
+
+# Register admin.ipfs.1001.digital with kamal-proxy,
+# routing to the Caddy basic auth proxy inside the IPFS container.
+
+CONTAINER=$(ssh root@${DEPLOY_HOST} "docker ps --filter label=service=1001-ipfs --filter status=running --format '{{.ID}}' | head -1")
+
+if [ -n "$CONTAINER" ]; then
+  ssh root@${DEPLOY_HOST} "docker exec kamal-proxy kamal-proxy deploy 1001-ipfs-admin \
+    --target ${CONTAINER}:5080 \
+    --host ${IPFS_ADMIN_HOST} \
+    --tls \
+    --health-check-path /health \
+    --health-check-interval 5s \
+    --deploy-timeout 120s"
+fi
