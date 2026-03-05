@@ -18,3 +18,6 @@ ipfs config --bool Gateway.DeserializedResponses true
 ORIGINS='["https://'"${IPFS_ADMIN_HOST}"'", "http://localhost:3000", "http://127.0.0.1:5001", "https://webui.ipfs.io"]'
 ipfs config --json API.HTTPHeaders.Access-Control-Allow-Origin "$ORIGINS"
 ipfs config --json API.HTTPHeaders.Access-Control-Allow-Methods '["PUT", "POST"]'
+
+# Keep IPNS records alive for 2 weeks to survive extended downtime
+ipfs config Ipns.RecordLifetime "336h"
