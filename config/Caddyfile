@@ -23,8 +23,6 @@
 			flush_interval -1
 			transport http {
 				response_header_timeout 0
-				read_timeout 0
-				write_timeout 0
 			}
 		}
 	}
