@@ -21,3 +21,10 @@ ipfs config --json API.HTTPHeaders.Access-Control-Allow-Methods '["PUT", "POST"]
 
 # Keep IPNS records alive for 2 weeks to survive extended downtime
 ipfs config Ipns.RecordLifetime "${IPNS_RECORD_LIFETIME:-336h}"
+
+# Maximum disk space for the IPFS datastore
+ipfs config Datastore.StorageMax "${STORAGE_MAX:-10GB}"
+
+# Peer connection limits
+ipfs config --json Swarm.ConnMgr.HighWater "${CONN_MGR_HIGH_WATER:-96}"
+ipfs config --json Swarm.ConnMgr.LowWater "${CONN_MGR_LOW_WATER:-32}"

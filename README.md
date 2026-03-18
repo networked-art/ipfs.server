@@ -69,15 +69,18 @@ pnpm install
 pnpm kamal:setup
 ```
 
-### Gateway Configuration
+### Node Configuration
 
-These optional environment variables can be set in `.env.production` to tune gateway behavior:
+These optional environment variables can be set in `.env.production` to tune node behavior:
 
 | Variable | Default | Description |
 |---|---|---|
 | `GATEWAY_NO_FETCH` | `true` | When `true`, only serves pinned/cached content. Set to `false` to fetch from the IPFS network on demand. |
 | `GATEWAY_DESERIALIZED_RESPONSES` | `true` | Enables directory listings and deserialized responses. |
 | `IPNS_RECORD_LIFETIME` | `336h` | How long IPNS records remain valid. Default is 14 days. |
+| `STORAGE_MAX` | `10GB` | Maximum disk space for the IPFS datastore. |
+| `CONN_MGR_HIGH_WATER` | `96` | Maximum number of peer connections to maintain. |
+| `CONN_MGR_LOW_WATER` | `32` | Peer connections to trim down to when `HighWater` is reached. |
 
 ## Deployment
 
