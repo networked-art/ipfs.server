@@ -23,7 +23,7 @@ ipfs config --json API.HTTPHeaders.Access-Control-Allow-Methods '["PUT", "POST"]
 ipfs config Ipns.RecordLifetime "${IPNS_RECORD_LIFETIME:-336h}"
 
 # Maximum disk space for the IPFS datastore
-ipfs config Datastore.StorageMax "${STORAGE_MAX:-10GB}"
+ipfs config Datastore.StorageMax "${STORAGE_MAX:-20GB}"
 
 # Peer connection limits
 ipfs config --json Swarm.ConnMgr.HighWater "${CONN_MGR_HIGH_WATER:-96}"
