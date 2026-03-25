@@ -49,7 +49,7 @@ env:
     - ADMIN_PASSWORD_HASH
 
 volumes:
-  - ipfs_data:/data/ipfs
+  - <%= ENV["IPFS_VOLUME"] || "ipfs_data" %>:/data/ipfs
 
 ssh:
   user: root
