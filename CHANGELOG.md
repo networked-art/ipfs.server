@@ -1,5 +1,11 @@
 # @1001/ipfs-server
 
+## 1.3.0
+
+### Minor Changes
+
+- [`769a50f`](https://github.com/1001-digital/ipfs.server/commit/769a50fa77f24792553f480a9cfc1916621af7b0) Thanks [@jwahdatehagh](https://github.com/jwahdatehagh)! - Enable garbage collection by default
+
 ## 1.2.0
 
 ### Minor Changes
