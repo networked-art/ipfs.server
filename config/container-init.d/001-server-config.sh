@@ -25,6 +25,12 @@ ipfs config Ipns.RecordLifetime "${IPNS_RECORD_LIFETIME:-336h}"
 # Maximum disk space for the IPFS datastore
 ipfs config Datastore.StorageMax "${STORAGE_MAX:-20GB}"
 
+# Garbage collection: trigger GC when storage exceeds this % of StorageMax
+ipfs config --json Datastore.StorageGCWatermark "${STORAGE_GC_WATERMARK:-90}"
+
+# How often the daemon runs GC
+ipfs config Datastore.GCPeriod "${GC_PERIOD:-1h}"
+
 # Peer connection limits
 ipfs config --json Swarm.ConnMgr.HighWater "${CONN_MGR_HIGH_WATER:-96}"
 ipfs config --json Swarm.ConnMgr.LowWater "${CONN_MGR_LOW_WATER:-32}"

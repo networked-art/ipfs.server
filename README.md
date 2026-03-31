@@ -79,6 +79,9 @@ These optional environment variables can be set in `.env.production` to tune nod
 | `GATEWAY_DESERIALIZED_RESPONSES` | `true` | Enables directory listings and deserialized responses. |
 | `IPNS_RECORD_LIFETIME` | `336h` | How long IPNS records remain valid. Default is 14 days. |
 | `STORAGE_MAX` | `20GB` | Maximum disk space for the IPFS datastore. |
+| `ENABLE_GC` | `true` | Enable automatic garbage collection. Frees unpinned content when storage exceeds the GC watermark. |
+| `STORAGE_GC_WATERMARK` | `90` | Percentage of `STORAGE_MAX` that triggers garbage collection. |
+| `GC_PERIOD` | `1h` | How often the daemon checks whether to run garbage collection. |
 | `CONN_MGR_HIGH_WATER` | `96` | Maximum number of peer connections to maintain. |
 | `CONN_MGR_LOW_WATER` | `32` | Peer connections to trim down to when `HighWater` is reached. |
 | `IPFS_VOLUME` | `ipfs_data` | Storage volume for IPFS data. Use a host path (e.g. `/mnt/ipfs/ipfs_data`) for bind mounts. |
