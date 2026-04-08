@@ -54,7 +54,8 @@ cp .env.production.example .env.production
 | `KAMAL_REGISTRY_PASSWORD` | Docker Hub access token |
 | `IPFS_HOST` | Public gateway domain |
 | `IPFS_ADMIN_HOST` | Admin API domain |
-| `ADMIN_PASSWORD_HASH` | Bcrypt-hashed admin password |
+| `ADMIN_PASSWORD` | Plaintext admin password (used by the upload script) |
+| `ADMIN_PASSWORD_HASH` | Bcrypt-hashed admin password (used by Caddy) |
 
 2. Generate a bcrypt password hash for admin access:
 
@@ -97,6 +98,28 @@ pnpm kamal:deploy
 ```
 
 This builds the Docker image, pushes it to Docker Hub, and deploys to your server. Kamal handles zero-downtime deploys, health checks, and TLS.
+
+## Uploading Content
+
+Upload files or directories to the node's MFS (Mutable File System) via the admin API:
+
+```sh
+# Upload a directory
+pnpm upload ./dist
+
+# Upload a single file
+pnpm upload ./image.png
+
+# Pin the content after uploading
+pnpm upload ./dist --pin
+
+# Specify a custom MFS path (defaults to /<name>)
+pnpm upload ./dist --mfs-path /my-site
+```
+
+Requires `IPFS_ADMIN_HOST` and `ADMIN_PASSWORD` in `.env.production`. Set `IPFS_HOST` to use your own gateway in the output URL (defaults to `ipfs.io`).
+
+Each upload is logged to `uploads.log` with the timestamp, CID, MFS path, and source path.
 
 ## Usage
 
@@ -150,7 +173,9 @@ pnpm kamal:sh
 │   └── hooks/
 │       ├── pre-deploy              # Stop containers to free ports
 │       └── post-deploy             # Register admin proxy
-├── package.json                    # Kamal deployment scripts
+├── scripts/
+│   └── upload.ts                   # Upload files/directories to IPFS
+├── package.json                    # Kamal deployment & upload scripts
 └── .env.production.example         # Environment template
 ```
 
