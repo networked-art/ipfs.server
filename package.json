@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "upload": "set -a && . ./.env.production && set +a && node scripts/upload-directory.ts",
+    "upload": "set -a && . ./.env.production && set +a && node scripts/upload.ts",
     "kamal:setup": "set -a && . ./.env.production && set +a && kamal setup",
     "kamal:deploy": "set -a && . ./.env.production && set +a && kamal deploy",
     "kamal:sh": "set -a && . ./.env.production && set +a && kamal app exec -i --reuse \"sh\"",

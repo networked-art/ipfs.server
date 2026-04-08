@@ -8,18 +8,19 @@ const rootDir = resolve(__dirname, "..");
 
 // Parse args
 const args = process.argv.slice(2);
-const dirArg = args.find((a) => !a.startsWith("--"));
-if (!dirArg) {
+const targetArg = args.find((a) => !a.startsWith("--"));
+if (!targetArg) {
   console.error(
-    "Usage: pnpm upload <directory> [--pin] [--mfs-path /target]"
+    "Usage: pnpm upload <file-or-directory> [--pin] [--mfs-path /target]"
   );
   process.exit(1);
 }
 
-const dir = resolve(dirArg);
+const target = resolve(targetArg);
+const isDirectory = statSync(target).isDirectory();
 const pin = args.includes("--pin");
 const mfsIdx = args.indexOf("--mfs-path");
-const mfsPath = mfsIdx !== -1 ? args[mfsIdx + 1] : `/${basename(dir)}`;
+const mfsPath = mfsIdx !== -1 ? args[mfsIdx + 1] : `/${basename(target)}`;
 
 // Env vars sourced via `set -a && . ./.env.production` in package.json
 const host = process.env.IPFS_ADMIN_HOST;
@@ -40,7 +41,7 @@ const client = create({
   headers: { authorization: auth },
 });
 
-// Collect all files recursively
+// Collect all files recursively from a directory
 function collectFiles(base: string, rel = ""): { path: string; mfsPath: string }[] {
   const entries: { path: string; mfsPath: string }[] = [];
   for (const name of readdirSync(join(base, rel))) {
@@ -55,44 +56,51 @@ function collectFiles(base: string, rel = ""): { path: string; mfsPath: string }
   return entries;
 }
 
-const files = collectFiles(dir);
+if (isDirectory) {
+  const files = collectFiles(target);
+  console.log(`Uploading ${files.length} files from ${target} to ${host}...`);
 
-console.log(`Uploading ${files.length} files from ${dir} to ${host}...`);
+  try { await client.files.rm(mfsPath, { recursive: true }); } catch {}
 
-// Clear existing MFS path
-try {
-  await client.files.rm(mfsPath, { recursive: true });
-} catch {}
+  let uploaded = 0;
+  for (const file of files) {
+    const content = readFileSync(file.path);
+    await client.files.write(file.mfsPath, content, {
+      create: true,
+      parents: true,
+      truncate: true,
+    });
+    uploaded++;
+    console.log(`  [${uploaded}/${files.length}] ${file.mfsPath}`);
+  }
+} else {
+  console.log(`Uploading file ${target} to ${host}...`);
 
-// Upload files one by one directly into MFS
-let uploaded = 0;
-for (const file of files) {
-  const content = readFileSync(file.path);
-  await client.files.write(file.mfsPath, content, {
+  const content = readFileSync(target);
+  await client.files.write(mfsPath, content, {
     create: true,
     parents: true,
     truncate: true,
   });
-  uploaded++;
-  console.log(`  [${uploaded}/${files.length}] ${file.mfsPath}`);
+  console.log(`  ${mfsPath}`);
 }
 
-// Get the root CID from MFS
+// Get the CID from MFS
 const stat = await client.files.stat(mfsPath);
-const rootCid = stat.cid.toString();
+const cid = stat.cid.toString();
 
 // Pin if requested
 if (pin) {
   await client.pin.add(stat.cid);
-  console.log(`\nPinned ${rootCid}`);
+  console.log(`\nPinned ${cid}`);
 }
 
 console.log();
-console.log(`Root CID: ${rootCid}`);
-console.log(`Gateway:  https://${gateway}/ipfs/${rootCid}`);
+console.log(`Root CID: ${cid}`);
+console.log(`Gateway:  https://${gateway}/ipfs/${cid}`);
 console.log(`\nDone! ${mfsPath} is now visible in the Web UI.`);
 
 // Log
-const logLine = `${new Date().toISOString()}  ${rootCid}  ${mfsPath}  ${dir}\n`;
+const logLine = `${new Date().toISOString()}  ${cid}  ${mfsPath}  ${target}\n`;
 appendFileSync(resolve(rootDir, "uploads.log"), logLine);
 console.log(`CID logged to uploads.log`);
