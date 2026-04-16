@@ -23,18 +23,21 @@ ipfs config --json API.HTTPHeaders.Access-Control-Allow-Methods '["PUT", "POST"]
 ipfs config Ipns.RecordLifetime "${IPNS_RECORD_LIFETIME:-336h}"
 
 # Maximum disk space for the IPFS datastore
-ipfs config Datastore.StorageMax "${STORAGE_MAX:-20GB}"
+ipfs config Datastore.StorageMax "${STORAGE_MAX:-30TB}"
+
+# Bloom filter size for faster blockstore lookups (critical at scale)
+ipfs config --json Datastore.BloomFilterSize "${BLOOM_FILTER_SIZE:-1048576}"
 
 # Garbage collection: trigger GC when storage exceeds this % of StorageMax
 ipfs config --json Datastore.StorageGCWatermark "${STORAGE_GC_WATERMARK:-90}"
 
-# How often the daemon runs GC
-ipfs config Datastore.GCPeriod "${GC_PERIOD:-1h}"
+# How often the daemon runs GC (long interval for large datastores)
+ipfs config Datastore.GCPeriod "${GC_PERIOD:-168h}"
 
-# Peer connection limits
-ipfs config --json Swarm.ConnMgr.HighWater "${CONN_MGR_HIGH_WATER:-96}"
-ipfs config --json Swarm.ConnMgr.LowWater "${CONN_MGR_LOW_WATER:-32}"
+# Peer connection limits (scaled for high-capacity node)
+ipfs config --json Swarm.ConnMgr.HighWater "${CONN_MGR_HIGH_WATER:-900}"
+ipfs config --json Swarm.ConnMgr.LowWater "${CONN_MGR_LOW_WATER:-600}"
 
 # Resource manager limits (memory & file descriptors for libp2p)
-ipfs config Swarm.ResourceMgr.MaxMemory "${RESOURCE_MGR_MAX_MEMORY:-4GB}"
-ipfs config --json Swarm.ResourceMgr.MaxFileDescriptors "${RESOURCE_MGR_MAX_FILE_DESCRIPTORS:-4096}"
+ipfs config Swarm.ResourceMgr.MaxMemory "${RESOURCE_MGR_MAX_MEMORY:-24GB}"
+ipfs config --json Swarm.ResourceMgr.MaxFileDescriptors "${RESOURCE_MGR_MAX_FILE_DESCRIPTORS:-65536}"

@@ -7,10 +7,12 @@ servers:
   web:
     hosts:
       - <%= ENV["DEPLOY_HOST"] %>
-    cmd: daemon --migrate=true --agent-version-suffix=docker <%= ENV["ENABLE_GC"] == "false" ? "" : "--enable-gc" %>
+    cmd: daemon --migrate=true --agent-version-suffix=docker <%= ENV["ENABLE_GC"] == "true" ? "--enable-gc" : "" %>
     options:
-      cpus: <%= ENV["CONTAINER_CPUS"] || "2" %>
-      memory: <%= ENV["CONTAINER_MEMORY"] || "6G" %>
+      cpus: <%= ENV["CONTAINER_CPUS"] || "4" %>
+      memory: <%= ENV["CONTAINER_MEMORY"] || "32G" %>
+      ulimit:
+        - nofile=65536:65536
       publish:
         - 4001:4001
         - 4001:4001/udp
@@ -22,8 +24,8 @@ proxy:
   app_port: 8080
   healthcheck:
     path: /ipfs/QmUNLLsPACCz1vLxQVkXqqLX5R1X345qqfHbsf67hvA3Nn
-    interval: 5
-    timeout: 60
+    interval: 10
+    timeout: 300
 
 registry:
   username: <%= ENV["DOCKER_REGISTRY_USERNAME"] %>
@@ -41,18 +43,19 @@ env:
     GATEWAY_NO_FETCH: <%= ENV["GATEWAY_NO_FETCH"] || "true" %>
     GATEWAY_DESERIALIZED_RESPONSES: <%= ENV["GATEWAY_DESERIALIZED_RESPONSES"] || "true" %>
     IPNS_RECORD_LIFETIME: <%= ENV["IPNS_RECORD_LIFETIME"] || "336h" %>
-    STORAGE_MAX: <%= ENV["STORAGE_MAX"] || "20GB" %>
-    CONN_MGR_HIGH_WATER: <%= ENV["CONN_MGR_HIGH_WATER"] || "96" %>
-    CONN_MGR_LOW_WATER: <%= ENV["CONN_MGR_LOW_WATER"] || "32" %>
+    STORAGE_MAX: <%= ENV["STORAGE_MAX"] || "30TB" %>
+    CONN_MGR_HIGH_WATER: <%= ENV["CONN_MGR_HIGH_WATER"] || "900" %>
+    CONN_MGR_LOW_WATER: <%= ENV["CONN_MGR_LOW_WATER"] || "600" %>
     STORAGE_GC_WATERMARK: <%= ENV["STORAGE_GC_WATERMARK"] || "90" %>
-    GC_PERIOD: <%= ENV["GC_PERIOD"] || "1h" %>
-    RESOURCE_MGR_MAX_MEMORY: <%= ENV["RESOURCE_MGR_MAX_MEMORY"] || "4GB" %>
-    RESOURCE_MGR_MAX_FILE_DESCRIPTORS: <%= ENV["RESOURCE_MGR_MAX_FILE_DESCRIPTORS"] || "4096" %>
+    GC_PERIOD: <%= ENV["GC_PERIOD"] || "168h" %>
+    BLOOM_FILTER_SIZE: <%= ENV["BLOOM_FILTER_SIZE"] || "1048576" %>
+    RESOURCE_MGR_MAX_MEMORY: <%= ENV["RESOURCE_MGR_MAX_MEMORY"] || "24GB" %>
+    RESOURCE_MGR_MAX_FILE_DESCRIPTORS: <%= ENV["RESOURCE_MGR_MAX_FILE_DESCRIPTORS"] || "65536" %>
   secret:
     - ADMIN_PASSWORD_HASH
 
 volumes:
-  - <%= ENV["IPFS_VOLUME"] || "ipfs_data" %>:/data/ipfs
+  - <%= ENV["IPFS_VOLUME"] || "/mnt/ipfs/data" %>:/data/ipfs
 
 ssh:
   user: root
