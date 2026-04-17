@@ -53,9 +53,12 @@ env:
     BLOOM_FILTER_SIZE: <%= ENV["BLOOM_FILTER_SIZE"] || "1048576" %>
     RESOURCE_MGR_MAX_MEMORY: <%= ENV["RESOURCE_MGR_MAX_MEMORY"] || "24GB" %>
     RESOURCE_MGR_MAX_FILE_DESCRIPTORS: <%= ENV["RESOURCE_MGR_MAX_FILE_DESCRIPTORS"] || "65536" %>
+    PIN_CIDS_FILE: <%= ENV["PIN_CIDS_FILE"] || "" %>
+    PIN_CONCURRENCY: <%= ENV["PIN_CONCURRENCY"] || "20" %>
+    PIN_TIMEOUT: <%= ENV["PIN_TIMEOUT"] || "2m" %>
+    PIN_STATE_DIR: <%= ENV["PIN_STATE_DIR"] || "/data/ipfs/pin-state" %>
   secret:
     - ADMIN_PASSWORD_HASH
-    - DATABASE_URL
 
 volumes:
   - <%= ENV["IPFS_VOLUME"] || "/mnt/ipfs/data" %>:/data/ipfs
