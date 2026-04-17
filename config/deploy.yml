@@ -17,6 +17,8 @@ servers:
         - 4001:4001
         - 4001:4001/udp
 
+deploy_timeout: 120
+
 proxy:
   ssl: true
   hosts:
