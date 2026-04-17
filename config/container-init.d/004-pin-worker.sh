@@ -6,7 +6,7 @@ set -e
 # directly via the Kubo CLI (no auth needed, same container).
 (
   # Wait for the IPFS API to be ready
-  while ! wget -qO /dev/null http://localhost:5001/api/v0/version 2>/dev/null; do
+  while ! wget -qO /dev/null --post-data="" http://localhost:5001/api/v0/version 2>/dev/null; do
     sleep 2
   done
 
