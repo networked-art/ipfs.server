@@ -55,6 +55,7 @@ env:
     RESOURCE_MGR_MAX_FILE_DESCRIPTORS: <%= ENV["RESOURCE_MGR_MAX_FILE_DESCRIPTORS"] || "65536" %>
   secret:
     - ADMIN_PASSWORD_HASH
+    - DATABASE_URL
 
 volumes:
   - <%= ENV["IPFS_VOLUME"] || "/mnt/ipfs/data" %>:/data/ipfs
