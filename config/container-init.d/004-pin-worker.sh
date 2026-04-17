@@ -4,6 +4,12 @@ set -e
 # Background worker: pin IPFS CIDs from the indexer database.
 # Queries offchain.token_cids for unpinned CIDs and pins them
 # directly via the Kubo CLI (no auth needed, same container).
+#
+# Env vars (all optional):
+#   PIN_CONCURRENCY   - parallel pins (default: 5)
+#   PIN_BATCH_SIZE    - CIDs per batch (default: 50)
+#   PIN_POLL_INTERVAL - seconds between idle polls (default: 300)
+#   PIN_TIMEOUT       - per-CID timeout (default: 2m)
 (
   # Wait for the IPFS API to be ready
   while ! wget -qO /dev/null --post-data="" http://localhost:5001/api/v0/version 2>/dev/null; do
@@ -37,9 +43,26 @@ set -e
     );
   "
 
+  CONCURRENCY="${PIN_CONCURRENCY:-5}"
   BATCH_SIZE="${PIN_BATCH_SIZE:-50}"
   POLL_INTERVAL="${PIN_POLL_INTERVAL:-300}"
   TIMEOUT="${PIN_TIMEOUT:-2m}"
+
+  # Helper script for xargs -P: pins one CID and records the result
+  cat > /tmp/pin-one.sh << 'PINSCRIPT'
+#!/bin/sh
+cid="$1"
+timeout="$2"
+db="$3"
+now=$(date +%s)
+if ipfs pin add --timeout "$timeout" "$cid" >/dev/null 2>&1; then
+  psql "$db" -q -c "INSERT INTO offchain.pinned_cids (cid, pinned_at) VALUES ('$cid', $now) ON CONFLICT (cid) DO NOTHING"
+else
+  psql "$db" -q -c "INSERT INTO offchain.failed_cids (cid, failed_at) VALUES ('$cid', $now) ON CONFLICT (cid) DO NOTHING"
+  echo "$(date -Iseconds) Pin worker: failed $cid"
+fi
+PINSCRIPT
+  chmod +x /tmp/pin-one.sh
 
   while true; do
     CIDS=$(psql "$DATABASE_URL" -t -A -c "
@@ -60,28 +83,16 @@ set -e
     fi
 
     COUNT=$(echo "$CIDS" | wc -l)
-    echo "$(date -Iseconds) Pin worker: $COUNT CIDs to pin"
+    BEFORE=$(psql "$DATABASE_URL" -t -A -c "SELECT count(*) FROM offchain.pinned_cids")
+    echo "$(date -Iseconds) Pin worker: pinning $COUNT CIDs (concurrency=$CONCURRENCY)"
 
-    PINNED=0
-    FAILED=0
-    NOW=$(date +%s)
+    echo "$CIDS" | xargs -P "$CONCURRENCY" -I{} /tmp/pin-one.sh {} "$TIMEOUT" "$DATABASE_URL"
 
-    for cid in $CIDS; do
-      if ipfs pin add --timeout "$TIMEOUT" "$cid" >/dev/null 2>&1; then
-        psql "$DATABASE_URL" -q -c \
-          "INSERT INTO offchain.pinned_cids (cid, pinned_at) VALUES ('$cid', $NOW) ON CONFLICT (cid) DO NOTHING"
-        PINNED=$((PINNED + 1))
-      else
-        psql "$DATABASE_URL" -q -c \
-          "INSERT INTO offchain.failed_cids (cid, failed_at) VALUES ('$cid', $NOW) ON CONFLICT (cid) DO NOTHING"
-        FAILED=$((FAILED + 1))
-        echo "$(date -Iseconds) Pin worker: failed $cid"
-      fi
-    done
+    AFTER=$(psql "$DATABASE_URL" -t -A -c "SELECT count(*) FROM offchain.pinned_cids")
+    FAILED=$(psql "$DATABASE_URL" -t -A -c "SELECT count(*) FROM offchain.failed_cids")
+    echo "$(date -Iseconds) Pin worker: pinned $((AFTER - BEFORE)), total=$AFTER, failed=$FAILED"
 
-    echo "$(date -Iseconds) Pin worker: pinned $PINNED, failed $FAILED"
-
-    # Short pause between batches when there's work, full interval when idle
+    # Short pause between batches when there's work
     sleep 10
   done
 ) &
