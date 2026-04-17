@@ -55,9 +55,11 @@ timeout="$2"
 db="$3"
 now=$(date +%s)
 if ipfs pin add --timeout "$timeout" "$cid" >/dev/null 2>&1; then
-  psql "$db" -q -v cid="$cid" -v now="$now" -c "INSERT INTO offchain.pinned_cids (cid, pinned_at) VALUES (:'cid', :'now') ON CONFLICT (cid) DO NOTHING"
+  echo "INSERT INTO offchain.pinned_cids (cid, pinned_at) VALUES (:'cid', :'now') ON CONFLICT (cid) DO NOTHING" \
+    | psql "$db" -q -v cid="$cid" -v now="$now"
 else
-  psql "$db" -q -v cid="$cid" -v now="$now" -c "INSERT INTO offchain.failed_cids (cid, failed_at) VALUES (:'cid', :'now') ON CONFLICT (cid) DO UPDATE SET failed_at = EXCLUDED.failed_at"
+  echo "INSERT INTO offchain.failed_cids (cid, failed_at) VALUES (:'cid', :'now') ON CONFLICT (cid) DO UPDATE SET failed_at = EXCLUDED.failed_at" \
+    | psql "$db" -q -v cid="$cid" -v now="$now"
   echo "$(date -Iseconds) Pin worker: failed $cid"
 fi
 PINSCRIPT
