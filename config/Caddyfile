@@ -9,7 +9,7 @@
 
 	@options method OPTIONS
 	handle @options {
-		reverse_proxy localhost:5001
+		reverse_proxy 127.0.0.1:5001
 	}
 
 	handle {
@@ -19,7 +19,7 @@
 		request_body {
 			max_size 0
 		}
-		reverse_proxy localhost:5001 {
+		reverse_proxy 127.0.0.1:5001 {
 			flush_interval -1
 			transport http {
 				response_header_timeout 0
