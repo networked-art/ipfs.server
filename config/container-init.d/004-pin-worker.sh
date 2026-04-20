@@ -2,6 +2,7 @@
 set -e
 
 # Background worker: pin CIDs from a newline-separated text file.
+# Runs only when WORKER=pin.
 #
 # Env vars:
 #   PIN_CIDS_FILE     - path to CID list inside the container (required)
@@ -9,6 +10,10 @@ set -e
 #   PIN_TIMEOUT       - per-CID timeout (default: 2m)
 #   PIN_STATE_DIR     - state directory (default: /data/ipfs/pin-state)
 (
+  if [ "$WORKER" != "pin" ]; then
+    exit 0
+  fi
+
   if [ -z "$PIN_CIDS_FILE" ]; then
     echo "Pin worker: PIN_CIDS_FILE not set, skipping"
     exit 0
