@@ -58,9 +58,13 @@ log "CARs: $CARS_DIR"
 log "Concurrency: $CONCURRENCY, Timeout: $TIMEOUT"
 log "Pinned so far: $(sort -u "$PINNED_FILE" | wc -l), Failed so far: $(sort -u "$FAILED_FILE" | wc -l), Missing so far: $(sort -u "$MISSING_FILE" | wc -l)"
 
-# Build skip list from previously handled CIDs (pinned/failed/missing)
+# Build skip list from previously handled CIDs (pinned/failed/missing).
+# Failed entries are "<cid> <reason>" — strip the reason so match is CID-only.
 SKIP_FILE=$(mktemp)
-sort -u "$PINNED_FILE" "$FAILED_FILE" "$MISSING_FILE" > "$SKIP_FILE"
+{
+  cat "$PINNED_FILE" "$MISSING_FILE"
+  awk '{print $1}' "$FAILED_FILE"
+} | sort -u > "$SKIP_FILE"
 SKIP_COUNT=$(wc -l < "$SKIP_FILE")
 log "Skipping $SKIP_COUNT already-handled CIDs"
 
