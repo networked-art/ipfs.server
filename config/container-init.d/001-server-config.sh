@@ -41,3 +41,18 @@ ipfs config --json Swarm.ConnMgr.LowWater "${CONN_MGR_LOW_WATER:-600}"
 # Resource manager limits (memory & file descriptors for libp2p)
 ipfs config Swarm.ResourceMgr.MaxMemory "${RESOURCE_MGR_MAX_MEMORY:-24GB}"
 ipfs config --json Swarm.ResourceMgr.MaxFileDescriptors "${RESOURCE_MGR_MAX_FILE_DESCRIPTORS:-65536}"
+
+# Content routing / provider announcement.
+# On a large pin node the default Reprovider.Strategy=all + vanilla DHT client
+# cannot re-announce every block within the interval, so DHT provider records
+# (~48h TTL) expire and the node silently stops being discoverable by other
+# gateways (OpenSea, ipfs.io) even though our own gateway still serves the pin.
+#
+# AcceleratedDHTClient gives the throughput to keep provider records fresh;
+# Reprovider.Strategy=roots announces only pin *roots* (not every child block) —
+# gateways find the root provider and bitswap the rest directly from us.
+# Note: `roots` covers explicit pins only, so uploads must be `pin add`'d
+# (not MFS-only) to be announced.
+ipfs config --bool Routing.AcceleratedDHTClient "${ROUTING_ACCELERATED_DHT:-true}"
+ipfs config Reprovider.Strategy "${REPROVIDER_STRATEGY:-roots}"
+ipfs config Reprovider.Interval "${REPROVIDER_INTERVAL:-22h}"
