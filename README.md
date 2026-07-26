@@ -85,9 +85,7 @@ These optional environment variables can be set in `.env.production` to tune nod
 | `GC_PERIOD` | `1h` | How often the daemon checks whether to run garbage collection. |
 | `CONN_MGR_HIGH_WATER` | `96` | Maximum number of peer connections to maintain. |
 | `CONN_MGR_LOW_WATER` | `32` | Peer connections to trim down to when `HighWater` is reached. |
-| `ROUTING_ACCELERATED_DHT` | `true` | Use the accelerated DHT client so provider records stay announced on a large pin set. Disable only on small/low-memory nodes. |
-| `REPROVIDER_STRATEGY` | `roots` | Which keys to re-announce to the DHT. `roots` announces pin roots only (gateways bitswap the rest directly). Covers explicit pins only — use `all` to also announce MFS-only content. |
-| `REPROVIDER_INTERVAL` | `22h` | How often provider records are re-announced. Must stay below the DHT record TTL (~48h). |
+| `PROVIDE_STRATEGY` | `roots` | Which keys to announce to the DHT (`Provide.Strategy`). `roots` announces pin roots only — gateways then bitswap the rest directly from us — which keeps a large pin set discoverable without falling behind the reprovide interval. Covers explicit pins only; use `all`/`pinned+mfs` to also announce MFS content. (Kubo 0.40 removed the old `Reprovider.*` keys; setting them now fatally crashes the daemon.) |
 | `IPFS_VOLUME` | `ipfs_data` | Storage volume for IPFS data. Use a host path (e.g. `/mnt/ipfs/ipfs_data`) for bind mounts. |
 | `CONTAINER_CPUS` | `2` | CPU cores available to the Docker container. |
 | `CONTAINER_MEMORY` | `6G` | Maximum memory for the Docker container. |

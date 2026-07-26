@@ -42,17 +42,17 @@ ipfs config --json Swarm.ConnMgr.LowWater "${CONN_MGR_LOW_WATER:-600}"
 ipfs config Swarm.ResourceMgr.MaxMemory "${RESOURCE_MGR_MAX_MEMORY:-24GB}"
 ipfs config --json Swarm.ResourceMgr.MaxFileDescriptors "${RESOURCE_MGR_MAX_FILE_DESCRIPTORS:-65536}"
 
-# Content routing / provider announcement.
-# On a large pin node the default Reprovider.Strategy=all + vanilla DHT client
-# cannot re-announce every block within the interval, so DHT provider records
-# (~48h TTL) expire and the node silently stops being discoverable by other
-# gateways (OpenSea, ipfs.io) even though our own gateway still serves the pin.
+# Content routing / provider announcement (Kubo >= 0.38 `Provide.*` section).
+# The default Provide.Strategy is "all": on a large pin node the provider cannot
+# re-announce every block within Provide.DHT.Interval (22h), so DHT provider
+# records (~48h TTL) expire and the node silently stops being discoverable by
+# other gateways (OpenSea, ipfs.io) even though our own gateway still serves the
+# pin. "roots" announces only pin *roots* (not every child block); gateways find
+# the root provider and bitswap the rest directly from us. This shrinks the
+# provide set enough that the standard provider keeps records fresh on its own.
 #
-# AcceleratedDHTClient gives the throughput to keep provider records fresh;
-# Reprovider.Strategy=roots announces only pin *roots* (not every child block) —
-# gateways find the root provider and bitswap the rest directly from us.
-# Note: `roots` covers explicit pins only, so uploads must be `pin add`'d
-# (not MFS-only) to be announced.
-ipfs config --bool Routing.AcceleratedDHTClient "${ROUTING_ACCELERATED_DHT:-true}"
-ipfs config Reprovider.Strategy "${REPROVIDER_STRATEGY:-roots}"
-ipfs config Reprovider.Interval "${REPROVIDER_INTERVAL:-22h}"
+# NOTE: `roots` covers explicit pins only, so uploads must be `pin add`'d (not
+# MFS-only) to be announced. The old `Reprovider.Strategy`/`Reprovider.Interval`
+# keys were REMOVED in Kubo 0.40 and now FATAL the daemon on boot — do not set
+# them; use Provide.* instead.
+ipfs config Provide.Strategy "${PROVIDE_STRATEGY:-roots}"
