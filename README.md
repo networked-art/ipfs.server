@@ -95,10 +95,18 @@ These optional environment variables can be set in `.env.production` to tune nod
 ## Deployment
 
 ```sh
-pnpm kamal:deploy
+pnpm kamal:deploy         # primary (ipfs.networked.art, 167.235.35.106)
+pnpm kamal:deploy:ipfs1   # secondary (ipfs1.networked.art, 167.235.3.124)
 ```
 
 This builds the Docker image, pushes it to Docker Hub, and deploys to your server. Kamal handles zero-downtime deploys, health checks, and TLS.
+
+> **Pinned kamal version:** the scripts invoke `kamal _2.10.1_` on purpose. The
+> deployed kamal-proxy is `v0.9.0`; kamal ≥ 2.11 requires proxy ≥ 0.9.2 and
+> aborts the deploy *after* the pre-deploy hook has already stopped the running
+> container — taking the gateway down. 2.10.1's minimum proxy version is exactly
+> `v0.9.0`. Keep this pin until the proxy is upgraded fleet-wide via
+> `kamal proxy reboot` (which also re-registers every other service on the host).
 
 ## Uploading Content
 
