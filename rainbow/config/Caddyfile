@@ -28,7 +28,7 @@
 # Rainbow's denylist subscription client accepts HTTP(S) URLs. Serving the
 # versioned local emergency list over loopback makes it available at startup
 # without exposing it or relying on a host filesystem URL implementation.
-127.0.0.1:9081 {
+http://127.0.0.1:9081 {
 	root * /etc/rainbow
 	file_server
 }
