@@ -62,7 +62,7 @@ env:
     # Both the network-maintained list and a versioned local emergency list
     # are consumed at startup. Update the local file then redeploy for an
     # immediate incident response.
-    RAINBOW_DENYLISTS: https://denyli.st/badbits.deny,/etc/rainbow/denylist.deny
+    RAINBOW_DENYLISTS: https://denyli.st/badbits.deny,http://127.0.0.1:9081/denylist.deny
 
     # GC is advisory, so the mounted 250 GiB filesystem is the actual hard
     # cache ceiling. It is deliberately not on Docker's root filesystem.
