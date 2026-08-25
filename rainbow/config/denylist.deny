@@ -1,0 +1,5 @@
+# Emergency local denylist for the EVM.now retrieval gateway.
+#
+# Add a CID, CID path, or supported denylist rule here during an incident and
+# redeploy the Rainbow service. Keep this file intentionally versioned so an
+# emergency block is reviewed and survives host replacement.

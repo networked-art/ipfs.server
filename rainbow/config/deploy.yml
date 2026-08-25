@@ -1,0 +1,78 @@
+# EVM.now's retrieval-only IPFS gateway. This is deliberately a separate
+# Kamal service from 1001-ipfs/Kubo, which remains the pinned-content node.
+service: evm-now-ipfs-gateway
+
+image: <%= ENV["DOCKER_REGISTRY_USERNAME"] %>/evm-now-ipfs-gateway
+
+servers:
+  web:
+    hosts:
+      - <%= ENV["DEPLOY_HOST"] %>
+    options:
+      # This must be a fixed-size mounted filesystem created by
+      # ops/provision-data-volume.sh, not Docker's root volume and not a parent
+      # bind mount (Rainbow declares VOLUME /data/rainbow).
+      volume: <%= ENV["RAINBOW_VOLUME"] || "/home/ipfs/rainbow" %>:/data/rainbow
+      memory: <%= ENV["RAINBOW_CONTAINER_MEMORY"] || "6g" %>
+      cpus: <%= ENV["RAINBOW_CONTAINER_CPUS"] || "4" %>
+      ulimit:
+        - nofile=<%= ENV["RAINBOW_NOFILE"] || "65535" %>:<%= ENV["RAINBOW_NOFILE"] || "65535" %>
+
+proxy:
+  ssl: true
+  hosts:
+    - <%= ENV["IPFS_GATEWAY_HOST"] %>
+  app_port: 8080
+  healthcheck:
+    path: /health
+    interval: 5
+    timeout: 30
+
+registry:
+  username: <%= ENV["DOCKER_REGISTRY_USERNAME"] %>
+  password:
+    - KAMAL_REGISTRY_PASSWORD
+
+builder:
+  arch: amd64
+
+env:
+  clear:
+    # Rainbow remains loopback-only; Caddy above gates access from the Worker.
+    RAINBOW_GATEWAY_LISTEN_ADDRESS: 127.0.0.1:8090
+    RAINBOW_DATADIR: /data/rainbow
+    RAINBOW_GATEWAY_DOMAINS: <%= ENV["IPFS_GATEWAY_HOST"] %>
+
+    # Never run the accelerated Amino DHT crawler. Providers are found on
+    # demand through delegated HTTP routing instead.
+    RAINBOW_DHT_ROUTING: 'off'
+    RAINBOW_HTTP_ROUTERS: <%= ENV["RAINBOW_HTTP_ROUTERS"] || "auto" %>
+    RAINBOW_HTTP_ROUTERS_TIMEOUT: <%= ENV["RAINBOW_HTTP_ROUTERS_TIMEOUT"] || "10s" %>
+    RAINBOW_ROUTING_TIMEOUT: <%= ENV["RAINBOW_ROUTING_TIMEOUT"] || "15s" %>
+    RAINBOW_RETRIEVAL_TIMEOUT: <%= ENV["RAINBOW_RETRIEVAL_TIMEOUT"] || "15s" %>
+
+    # Keep a single hostile/slow request from consuming the service. The
+    # Worker falls back to public gateways when this origin returns a 5xx.
+    RAINBOW_MAX_CONCURRENT_REQUESTS: <%= ENV["RAINBOW_MAX_CONCURRENT_REQUESTS"] || "32" %>
+    RAINBOW_MAX_REQUEST_DURATION: <%= ENV["RAINBOW_MAX_REQUEST_DURATION"] || "20s" %>
+    RAINBOW_MAX_RANGE_REQUEST_FILE_SIZE: <%= ENV["RAINBOW_MAX_RANGE_REQUEST_FILE_SIZE"] || "1073741824" %>
+    RAINBOW_MAX_DESERIALIZED_RESPONSE_SIZE: <%= ENV["RAINBOW_MAX_DESERIALIZED_RESPONSE_SIZE"] || "67108864" %>
+    RAINBOW_MAX_UNIXFS_DAG_RESPONSE_SIZE: <%= ENV["RAINBOW_MAX_UNIXFS_DAG_RESPONSE_SIZE"] || "67108864" %>
+
+    # Both the network-maintained list and a versioned local emergency list
+    # are consumed at startup. Update the local file then redeploy for an
+    # immediate incident response.
+    RAINBOW_DENYLISTS: https://denyli.st/badbits.deny,/etc/rainbow/denylist.deny
+
+    # GC is advisory, so the mounted 250 GiB filesystem is the actual hard
+    # cache ceiling. It is deliberately not on Docker's root filesystem.
+    RAINBOW_GC_INTERVAL: <%= ENV["RAINBOW_GC_INTERVAL"] || "15m" %>
+    RAINBOW_GC_THRESHOLD: <%= ENV["RAINBOW_GC_THRESHOLD"] || "0.20" %>
+    RAINBOW_LIBP2P_MAX_MEMORY: <%= ENV["RAINBOW_LIBP2P_MAX_MEMORY"] || "4294967296" %>
+    RAINBOW_LIBP2P_MAX_FD: <%= ENV["RAINBOW_LIBP2P_MAX_FD"] || "16384" %>
+    RAINBOW_INMEM_BLOCK_CACHE: <%= ENV["RAINBOW_INMEM_BLOCK_CACHE"] || "536870912" %>
+  secret:
+    - RAINBOW_ORIGIN_TOKEN
+
+ssh:
+  user: root

@@ -1,0 +1,9 @@
+{
+  "name": "@networked-art/evm-now-ipfs-gateway",
+  "private": true,
+  "scripts": {
+    "kamal:setup": "set -a && . ./.env.production && set +a && kamal _2.10.1_ setup",
+    "kamal:deploy": "set -a && . ./.env.production && set +a && kamal _2.10.1_ deploy",
+    "kamal:config": "set -a && . ./.env.production && set +a && kamal _2.10.1_ config"
+  }
+}

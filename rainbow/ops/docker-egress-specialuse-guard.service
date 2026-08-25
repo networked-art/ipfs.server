@@ -1,0 +1,13 @@
+[Unit]
+Description=Block Rainbow Docker and host egress to special-use networks
+After=docker.service
+Requires=docker.service
+
+[Service]
+Type=oneshot
+Environment=DOCKER_EGRESS_INTERFACE=enp41s0
+ExecStart=/usr/local/sbin/evm-now-rainbow-egress-guard
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target

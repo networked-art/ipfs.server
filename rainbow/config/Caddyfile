@@ -1,0 +1,26 @@
+{
+	admin off
+	auto_https off
+}
+
+:8080 {
+	# Kamal uses this probe; it exposes no content and permits liveness checks
+	# without leaking the retrieval origin.
+	handle /health {
+		respond "OK" 200
+	}
+
+	# The Cloudflare Worker is the only intended caller. The token is a Kamal
+	# secret here and a Worker secret at the edge; hostname/IP alone cannot be
+	# used as an arbitrary public gateway.
+	@edge header X-EVMNow-Gateway-Token {env.RAINBOW_ORIGIN_TOKEN}
+	handle @edge {
+		reverse_proxy 127.0.0.1:8090 {
+			transport http {
+				response_header_timeout 20s
+			}
+		}
+	}
+
+	respond "Forbidden" 403
+}
